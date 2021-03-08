@@ -28,23 +28,24 @@ class Wheel extends StatefulWidget {
 }
 
 class _WheelState extends State<Wheel> {
-  int _selected = 0;
-  List<WheelItem> allItems;
-  List<WheelItem> currentWheelItems;
-  List<WheelItem> lastWheelItems;
   final TextEditingController _textController = new TextEditingController();
   static const double EditHeight = 70;
   static const double ButtonHeight = 60;
+  static const String versionNumber = "0.3.0";
+
   bool isCollapsed = false;
   double wheelWidth;
-  String localStorageString;
+  int _selected = 0;
+  int originalRandom;
+  List<WheelItem> allItems;
+  List<WheelItem> currentWheelItems;
+  List<WheelItem> lastWheelItems;
 
   @override
   void initState() {
-    if (html.window.localStorage['wheel_items'] == null) {
+    if (html.window.localStorage['wheel_items'].isEmpty) {
       html.window.localStorage['wheel_items'] = "placeholder1,placeholder2";
     }
-    localStorageString = html.window.localStorage['wheel_items'];
     buildItemList();
     super.initState();
   }
@@ -63,8 +64,8 @@ class _WheelState extends State<Wheel> {
                   animateFirst: false,
                   selected: _selected,
                   physics: NoPanPhysics(),
+                  onAnimationStart: animationStart,
                   onAnimationEnd: () => _showResult(context),
-                  //indicators: [FortuneIndicator(child: TriangleIndicator(), alignment: Alignment.topCenter)],
                   items: [
                     for (var item in currentWheelItems)
                       FortuneItem(
@@ -88,6 +89,7 @@ class _WheelState extends State<Wheel> {
                       onPressed: _resetWheel,
                     )
                   ])),
+              Container(child: Text("Version $versionNumber | developed by Tag365 | hosted by Suened"))
             ],
           ),
         ),
@@ -96,19 +98,20 @@ class _WheelState extends State<Wheel> {
             width: 20,
             child: Column(children: [
               Container(
-                height: MediaQuery.of(context).size.height / 2 - 10,
+                height: MediaQuery.of(context).size.height / 2 - 15,
                 child: VerticalDivider(
                   thickness: 2,
                 ),
               ),
               Container(
-                  height: 20,
+                  height: 30,
                   child: InkWell(
-                      child:
-                          Icon(isCollapsed ? Icons.keyboard_arrow_left_outlined : Icons.keyboard_arrow_right_outlined),
+                      child: Icon(
+                          isCollapsed ? Icons.keyboard_arrow_left_outlined : Icons.keyboard_arrow_right_outlined,
+                          size: 30),
                       onTap: _toggleListView)),
               Container(
-                height: MediaQuery.of(context).size.height / 2 - 10,
+                height: MediaQuery.of(context).size.height / 2 - 15,
                 child: VerticalDivider(
                   thickness: 2,
                 ),
@@ -141,13 +144,20 @@ class _WheelState extends State<Wheel> {
                         return Slidable(
                           actionPane: SlidableDrawerActionPane(),
                           actionExtentRatio: 0.25,
-                          child: ListTile(title: Text(item.name)),
+                          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+                            Text(item.name),
+                            IconButton(
+                              alignment: Alignment.centerRight,
+                              icon: Icon(Icons.delete, size: 18,),
+                              onPressed: () => _deleteItem(allItems[index]),
+                            )
+                          ]),
                           secondaryActions: [
                             IconSlideAction(
                               caption: "delete",
                               color: Colors.red,
                               icon: Icons.delete,
-                              onTap: () => _deleteItem(index),
+                              onTap: () => _deleteItem(allItems[index]),
                             )
                           ],
                         );
@@ -181,9 +191,18 @@ class _WheelState extends State<Wheel> {
   }
 
   void _startSpin() {
-    setState(() {
-      _selected = Random().nextInt(currentWheelItems.length - 1);
-    });
+    originalRandom = Random().nextInt(currentWheelItems.length - 1);
+    if (_selected == originalRandom) {
+      List<int> tmp = List.generate(currentWheelItems.length, (index) => index);
+      tmp.remove(originalRandom);
+      setState(() {
+        _selected = Fortune.randomItem(tmp, Random());
+      });
+    } else {
+      setState(() {
+        _selected = originalRandom;
+      });
+    }
   }
 
   void _showResult(BuildContext context) {
@@ -198,10 +217,11 @@ class _WheelState extends State<Wheel> {
         });
   }
 
-  void _deleteItem(int index) {
+  void _deleteItem(WheelItem item) {
     setState(() {
-      allItems.removeAt(index);
+      allItems.remove(item);
     });
+    saveAllItemsToLocalStorage();
   }
 
   void _submitTextEntry(String entry) {
@@ -209,7 +229,7 @@ class _WheelState extends State<Wheel> {
     setState(() {
       allItems.add(newItem);
     });
-    html.window.localStorage['wheel_items'] += "," + newItem.name;
+    saveAllItemsToLocalStorage();
     _textController.text = "";
   }
 
@@ -234,7 +254,7 @@ class _WheelState extends State<Wheel> {
   }
 
   void buildItemList() {
-    List<String> spliced = localStorageString.split(",");
+    List<String> spliced = html.window.localStorage['wheel_items'].split(",");
     var tmp = List.generate(spliced.length, (index) => new WheelItem(name: spliced[index]));
     setState(() {
       currentWheelItems = []..addAll(tmp);
@@ -244,11 +264,23 @@ class _WheelState extends State<Wheel> {
   }
 
   void _changeWheelItems() {
-    if (_textController.text.isNotEmpty) _submitTextEntry(_textController.text);
-    setState(() {
-      currentWheelItems = []..addAll(allItems);
-      lastWheelItems = []..addAll(allItems);
-    });
+    if (allItems.length > 1) {
+      if (_textController.text.isNotEmpty) _submitTextEntry(_textController.text);
+      setState(() {
+        currentWheelItems = []..addAll(allItems);
+        lastWheelItems = []..addAll(allItems);
+      });
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(new SnackBar(
+          behavior: SnackBarBehavior.floating,
+          width: 400,
+          backgroundColor: Colors.grey,
+          content: Text(
+            "You must have at least two Items in your List before submitting it to the wheel",
+            style: TextStyle(color: Colors.white),
+            textAlign: TextAlign.center,
+          )));
+    }
   }
 
   void _closePopUpAndRemoveEntry(BuildContext context) {
@@ -259,5 +291,19 @@ class _WheelState extends State<Wheel> {
       });
     }
     Navigator.of(context).pop();
+  }
+
+  void animationStart() {
+    setState(() {
+      _selected = originalRandom;
+    });
+  }
+
+  void saveAllItemsToLocalStorage() {
+    String localStorageString = "";
+    for (WheelItem item in allItems) {
+      localStorageString += item.name + ",";
+    }
+    html.window.localStorage['wheel_items'] = localStorageString.substring(0, localStorageString.length - 1);
   }
 }
