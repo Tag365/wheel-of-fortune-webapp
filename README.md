@@ -2,7 +2,7 @@
 
 This WebApp is a basic version of a Wheel of fortune.
 
-## Getting Started
+# Getting Started
 
 Download the latest release.
 

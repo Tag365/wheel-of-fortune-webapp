@@ -31,8 +31,8 @@ class _WheelState extends State<Wheel> {
   int _selected = 0;
   List<WheelItem> allItems;
   List<WheelItem> currentWheelItems;
+  List<WheelItem> lastWheelItems;
   final TextEditingController _textController = new TextEditingController();
-  final ScrollController _scrollController = new ScrollController();
   static const double EditHeight = 70;
   static const double ButtonHeight = 60;
   bool isCollapsed = false;
@@ -62,13 +62,14 @@ class _WheelState extends State<Wheel> {
                   styleStrategy: UniformStyleStrategy(),
                   animateFirst: false,
                   selected: _selected,
-                  onAnimationEnd: _showResult,
-                  indicators: [FortuneIndicator(child: TriangleIndicator(), alignment: Alignment.centerRight)],
+                  physics: NoPanPhysics(),
+                  onAnimationEnd: () => _showResult(context),
+                  //indicators: [FortuneIndicator(child: TriangleIndicator(), alignment: Alignment.topCenter)],
                   items: [
-                    for (var it in currentWheelItems)
+                    for (var item in currentWheelItems)
                       FortuneItem(
                           child: Text(
-                        it.name,
+                        item.name,
                         style: TextStyle(fontSize: 20),
                       )),
                   ],
@@ -82,7 +83,7 @@ class _WheelState extends State<Wheel> {
                         style: ElevatedButton.styleFrom(primary: Colors.grey),
                         onPressed: _startSpin),
                     ElevatedButton(
-                      child: Text("reset", style: TextStyle(fontSize: 20)),
+                      child: Text("Reset", style: TextStyle(fontSize: 20)),
                       style: ElevatedButton.styleFrom(primary: Colors.grey),
                       onPressed: _resetWheel,
                     )
@@ -181,11 +182,21 @@ class _WheelState extends State<Wheel> {
 
   void _startSpin() {
     setState(() {
-      _selected = Random().nextInt(allItems.length);
+      _selected = Random().nextInt(currentWheelItems.length - 1);
     });
   }
 
-  void _showResult() {}
+  void _showResult(BuildContext context) {
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("We have a winner!"),
+            content: Text("The winner is: ${currentWheelItems[_selected].name}"),
+            actions: [ElevatedButton(onPressed: () => _closePopUpAndRemoveEntry(context), child: Text("close"))],
+          );
+        });
+  }
 
   void _deleteItem(int index) {
     setState(() {
@@ -203,11 +214,12 @@ class _WheelState extends State<Wheel> {
   }
 
   void _resetWheel() {
-    print("wheel reset");
+    setState(() {
+      currentWheelItems = []..addAll(lastWheelItems);
+    });
   }
 
   void _toggleListView() {
-    print("toggle visibility of the list view");
     setState(() {
       isCollapsed = !isCollapsed;
     });
@@ -227,12 +239,25 @@ class _WheelState extends State<Wheel> {
     setState(() {
       currentWheelItems = []..addAll(tmp);
       allItems = []..addAll(tmp);
+      lastWheelItems = []..addAll(tmp);
     });
   }
 
   void _changeWheelItems() {
+    if (_textController.text.isNotEmpty) _submitTextEntry(_textController.text);
     setState(() {
       currentWheelItems = []..addAll(allItems);
+      lastWheelItems = []..addAll(allItems);
     });
+  }
+
+  void _closePopUpAndRemoveEntry(BuildContext context) {
+    if (currentWheelItems.length > 2) {
+      setState(() {
+        currentWheelItems.removeAt(_selected);
+        currentWheelItems.shuffle();
+      });
+    }
+    Navigator.of(context).pop();
   }
 }
