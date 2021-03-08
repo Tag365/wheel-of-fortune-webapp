@@ -43,7 +43,7 @@ class _WheelState extends State<Wheel> {
 
   @override
   void initState() {
-    if (html.window.localStorage['wheel_items'].isEmpty) {
+    if (html.window.localStorage['wheel_items'] == null || html.window.localStorage['wheel_items'] == "") {
       html.window.localStorage['wheel_items'] = "placeholder1,placeholder2";
     }
     buildItemList();
@@ -301,9 +301,13 @@ class _WheelState extends State<Wheel> {
 
   void saveAllItemsToLocalStorage() {
     String localStorageString = "";
-    for (WheelItem item in allItems) {
-      localStorageString += item.name + ",";
+    if (allItems.length > 0) {
+      for (WheelItem item in allItems) {
+        localStorageString += item.name + ",";
+      }
+      html.window.localStorage['wheel_items'] = localStorageString.substring(0, localStorageString.length - 1);
+    } else {
+      html.window.localStorage['wheel_items'] = "";
     }
-    html.window.localStorage['wheel_items'] = localStorageString.substring(0, localStorageString.length - 1);
   }
 }
