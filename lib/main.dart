@@ -71,9 +71,9 @@ class _WheelState extends State<Wheel> {
                     for (var item in currentWheelItems)
                       FortuneItem(
                           child: Text(
-                        item.name,
-                        style: TextStyle(fontSize: 20),
-                      )),
+                            item.name,
+                            style: TextStyle(fontSize: 20),
+                          )),
                   ],
                 ),
               ),
@@ -95,11 +95,17 @@ class _WheelState extends State<Wheel> {
           ),
         ),
         Container(
-            height: MediaQuery.of(context).size.height,
+            height: MediaQuery
+                .of(context)
+                .size
+                .height,
             width: 20,
             child: Column(children: [
               Container(
-                height: MediaQuery.of(context).size.height / 2 - 15,
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height / 2 - 15,
                 child: VerticalDivider(
                   thickness: 2,
                 ),
@@ -112,7 +118,10 @@ class _WheelState extends State<Wheel> {
                           size: 30),
                       onTap: _toggleListView)),
               Container(
-                height: MediaQuery.of(context).size.height / 2 - 15,
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height / 2 - 15,
                 child: VerticalDivider(
                   thickness: 2,
                 ),
@@ -130,11 +139,17 @@ class _WheelState extends State<Wheel> {
       );
     } else {
       return Container(
-        width: MediaQuery.of(context).size.width / 4 - 20,
+        width: MediaQuery
+            .of(context)
+            .size
+            .width / 4 - 20,
         child: Column(
           children: [
             Container(
-                height: MediaQuery.of(context).size.height - EditHeight - ButtonHeight,
+                height: MediaQuery
+                    .of(context)
+                    .size
+                    .height - EditHeight - ButtonHeight,
                 child: Scrollbar(
                   isAlwaysShown: true,
                   thickness: 7.5,
@@ -251,9 +266,15 @@ class _WheelState extends State<Wheel> {
 
   double getWheelWidth(BuildContext context) {
     if (isCollapsed) {
-      return MediaQuery.of(context).size.width - 50;
+      return MediaQuery
+          .of(context)
+          .size
+          .width - 50;
     } else {
-      return (MediaQuery.of(context).size.width / 4) * 3;
+      return (MediaQuery
+          .of(context)
+          .size
+          .width / 4) * 3;
     }
   }
 
@@ -268,16 +289,16 @@ class _WheelState extends State<Wheel> {
   }
 
   void _changeWheelItems(String entry) {
+    if (_textController.text.isNotEmpty) {
+      WheelItem newItem = new WheelItem(name: _textController.text);
+      setState(() {
+        allItems.add(newItem);
+      });
+      saveAllItemsToLocalStorage();
+      _textController.clear();
+      _focusNode.requestFocus();
+    }
     if (allItems.length > 1) {
-      if (_textController.text.isNotEmpty) {
-        WheelItem newItem = new WheelItem(name: _textController.text);
-        setState(() {
-          allItems.add(newItem);
-        });
-        saveAllItemsToLocalStorage();
-        _textController.clear();
-        _focusNode.requestFocus();
-      }
       setState(() {
         currentWheelItems = []..addAll(allItems);
         lastWheelItems = []..addAll(allItems);
