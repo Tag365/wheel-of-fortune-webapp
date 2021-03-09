@@ -29,9 +29,10 @@ class Wheel extends StatefulWidget {
 
 class _WheelState extends State<Wheel> {
   final TextEditingController _textController = new TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   static const double EditHeight = 70;
   static const double ButtonHeight = 60;
-  static const String versionNumber = "0.3.0";
+  static const String versionNumber = "0.4.0";
 
   bool isCollapsed = false;
   double wheelWidth;
@@ -64,7 +65,7 @@ class _WheelState extends State<Wheel> {
                   animateFirst: false,
                   selected: _selected,
                   physics: NoPanPhysics(),
-                  onAnimationStart: animationStart,
+                  onAnimationStart: onAnimationStart,
                   onAnimationEnd: () => _showResult(context),
                   items: [
                     for (var item in currentWheelItems)
@@ -167,9 +168,10 @@ class _WheelState extends State<Wheel> {
               height: EditHeight,
               child: TextField(
                 controller: _textController,
+                focusNode: _focusNode,
                 style: TextStyle(fontSize: 18),
                 decoration: InputDecoration(labelText: "Enter new entry"),
-                onSubmitted: _submitTextEntry,
+                onSubmitted: _changeWheelItems,
               ),
             ),
             Container(
@@ -181,7 +183,7 @@ class _WheelState extends State<Wheel> {
                   style: TextStyle(fontSize: 18),
                 ),
                 style: ElevatedButton.styleFrom(primary: Colors.grey),
-                onPressed: _changeWheelItems,
+                onPressed: () => _changeWheelItems(null),
               ),
             )
           ],
@@ -191,7 +193,8 @@ class _WheelState extends State<Wheel> {
   }
 
   void _startSpin() {
-    originalRandom = Random().nextInt(currentWheelItems.length - 1);
+    int maxBound = currentWheelItems.length == 2 ? currentWheelItems.length : currentWheelItems.length - 1;
+    originalRandom = Random().nextInt(maxBound);
     if (_selected == originalRandom) {
       List<int> tmp = List.generate(currentWheelItems.length, (index) => index);
       tmp.remove(originalRandom);
@@ -203,6 +206,12 @@ class _WheelState extends State<Wheel> {
         _selected = originalRandom;
       });
     }
+  }
+
+  void onAnimationStart() {
+    setState(() {
+      _selected = originalRandom;
+    });
   }
 
   void _showResult(BuildContext context) {
@@ -225,12 +234,7 @@ class _WheelState extends State<Wheel> {
   }
 
   void _submitTextEntry(String entry) {
-    WheelItem newItem = new WheelItem(name: entry);
-    setState(() {
-      allItems.add(newItem);
-    });
-    saveAllItemsToLocalStorage();
-    _textController.text = "";
+
   }
 
   void _resetWheel() {
@@ -263,9 +267,17 @@ class _WheelState extends State<Wheel> {
     });
   }
 
-  void _changeWheelItems() {
+  void _changeWheelItems(String entry) {
     if (allItems.length > 1) {
-      if (_textController.text.isNotEmpty) _submitTextEntry(_textController.text);
+      if (_textController.text.isNotEmpty) {
+        WheelItem newItem = new WheelItem(name: _textController.text);
+        setState(() {
+          allItems.add(newItem);
+        });
+        saveAllItemsToLocalStorage();
+        _textController.clear();
+        _focusNode.requestFocus();
+      }
       setState(() {
         currentWheelItems = []..addAll(allItems);
         lastWheelItems = []..addAll(allItems);
@@ -291,12 +303,6 @@ class _WheelState extends State<Wheel> {
       });
     }
     Navigator.of(context).pop();
-  }
-
-  void animationStart() {
-    setState(() {
-      _selected = originalRandom;
-    });
   }
 
   void saveAllItemsToLocalStorage() {
