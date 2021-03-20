@@ -50,9 +50,18 @@ class _WheelState extends State<Wheel> {
 
   @override
   void initState() {
-    if (html.window.localStorage['wheel_items'] == null || html.window.localStorage['wheel_items'] == "") {
+    if (html.window.localStorage['wheel_items'] == null ||
+        html.window.localStorage['wheel_items'] == "") {
       html.window.localStorage['wheel_items'] = "placeholder1,placeholder2";
     }
+
+    int i = 1;
+    while (html.window.localStorage['wheel_items'].split(",").length < 2) {
+      html.window.localStorage['wheel_items'] =
+          "${html.window.localStorage['wheel_items']},placeholder$i";
+      i++;
+    }
+
     buildItemList();
     super.initState();
   }
