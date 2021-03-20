@@ -1,19 +1,19 @@
+import 'package:flutter/foundation.dart';
+
 class WheelItem {
-  final String name;
+  String name;
+  bool edit;
 
-  WheelItem({this.name});
+  WheelItem({@required this.name, this.edit = false});
 
-  WheelItem.fromMap(Map<String, dynamic> map)
-      : name = map['name'];
+  WheelItem.fromMap(Map<String, dynamic> map) : name = map['name'];
 
-  Map<String, dynamic> toMap(){
-    return {
-      'name' : name
-    };
+  Map<String, dynamic> toMap() {
+    return {'name': name};
   }
+
   @override
   String toString() {
-    // TODO: implement toString
-    return "{ $name }";
+    return "{Name: $name, Edit: $edit}";
   }
 }

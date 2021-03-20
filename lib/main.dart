@@ -3,7 +3,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:wheel_flutter/WheelItem.dart';
 
 void main() {
@@ -17,7 +16,10 @@ class WheelHomeWidget extends StatelessWidget {
       title: "Fortune Wheel",
       home: Wheel(),
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(brightness: Brightness.dark, primaryColor: Colors.grey, accentColor: Colors.white),
+      theme: ThemeData(
+          brightness: Brightness.dark,
+          primaryColor: Colors.grey,
+          accentColor: Colors.white),
     );
   }
 }
@@ -29,7 +31,9 @@ class Wheel extends StatefulWidget {
 
 class _WheelState extends State<Wheel> {
   final TextEditingController _textController = new TextEditingController();
-  final FocusNode _focusNode = FocusNode();
+  final TextEditingController editController = new TextEditingController();
+  final FocusNode _newTextFieldFocusNode = FocusNode();
+  final FocusNode _editTextFieldFocusNode = FocusNode();
   static const double EditHeight = 70;
   static const double ButtonHeight = 60;
   static const String versionNumber = "0.3.5";
@@ -79,33 +83,30 @@ class _WheelState extends State<Wheel> {
               ),
               Container(
                   padding: EdgeInsets.all(10),
-                  child: ButtonBar(alignment: MainAxisAlignment.center, children: [
+                  child:
+                      ButtonBar(alignment: MainAxisAlignment.center, children: [
                     ElevatedButton(
                         child: Text("SPIN", style: TextStyle(fontSize: 30)),
                         style: ElevatedButton.styleFrom(primary: Colors.grey),
                         onPressed: _startSpin),
                     ElevatedButton(
-                      child: Text("Reset", style: TextStyle(fontSize: 20)),
+                      child: Text("Reset", style: TextStyle(fontSize: 25)),
                       style: ElevatedButton.styleFrom(primary: Colors.grey),
                       onPressed: _resetWheel,
                     )
                   ])),
-              Container(child: Text("Version $versionNumber | developed by Tag365 | hosted by Suened"))
+              Container(
+                  child: Text(
+                      "Version $versionNumber | developed by Tag365 | hosted by Suened"))
             ],
           ),
         ),
         Container(
-            height: MediaQuery
-                .of(context)
-                .size
-                .height,
+            height: MediaQuery.of(context).size.height,
             width: 20,
             child: Column(children: [
               Container(
-                height: MediaQuery
-                    .of(context)
-                    .size
-                    .height / 2 - 15,
+                height: MediaQuery.of(context).size.height / 2 - 15,
                 child: VerticalDivider(
                   thickness: 2,
                 ),
@@ -114,14 +115,13 @@ class _WheelState extends State<Wheel> {
                   height: 30,
                   child: InkWell(
                       child: Icon(
-                          isCollapsed ? Icons.keyboard_arrow_left_outlined : Icons.keyboard_arrow_right_outlined,
+                          isCollapsed
+                              ? Icons.keyboard_arrow_left_outlined
+                              : Icons.keyboard_arrow_right_outlined,
                           size: 30),
                       onTap: _toggleListView)),
               Container(
-                height: MediaQuery
-                    .of(context)
-                    .size
-                    .height / 2 - 15,
+                height: MediaQuery.of(context).size.height / 2 - 15,
                 child: VerticalDivider(
                   thickness: 2,
                 ),
@@ -139,51 +139,31 @@ class _WheelState extends State<Wheel> {
       );
     } else {
       return Container(
-        width: MediaQuery
-            .of(context)
-            .size
-            .width / 4 - 20,
+        width: MediaQuery.of(context).size.width / 4 - 20,
         child: Column(
           children: [
             Container(
-                height: MediaQuery
-                    .of(context)
-                    .size
-                    .height - EditHeight - ButtonHeight,
+                height: MediaQuery.of(context).size.height -
+                    EditHeight -
+                    ButtonHeight,
                 child: Scrollbar(
                   isAlwaysShown: true,
                   thickness: 7.5,
                   child: ListView.builder(
-                      itemCount: allItems.length,
-                      itemBuilder: (context, index) {
-                        final item = allItems[index];
-                        return Slidable(
-                          actionPane: SlidableDrawerActionPane(),
-                          actionExtentRatio: 0.25,
-                          child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                            Text(item.name),
-                            IconButton(
-                              alignment: Alignment.centerRight,
-                              icon: Icon(Icons.delete, size: 18,),
-                              onPressed: () => _deleteItem(allItems[index]),
-                            )
-                          ]),
-                          secondaryActions: [
-                            IconSlideAction(
-                              caption: "delete",
-                              color: Colors.red,
-                              icon: Icons.delete,
-                              onTap: () => _deleteItem(allItems[index]),
-                            )
-                          ],
-                        );
-                      }),
+                    itemCount: allItems.length,
+                    itemBuilder: (context, index) {
+                      print(allItems[index].toString());
+                      return GestureDetector(
+                          onDoubleTap: () => _toggleEditView(index),
+                          child: buildListTile(index));
+                    },
+                  ),
                 )),
             Container(
               height: EditHeight,
               child: TextField(
                 controller: _textController,
-                focusNode: _focusNode,
+                focusNode: _newTextFieldFocusNode,
                 style: TextStyle(fontSize: 18),
                 decoration: InputDecoration(labelText: "Enter new entry"),
                 onSubmitted: _changeWheelItems,
@@ -207,8 +187,48 @@ class _WheelState extends State<Wheel> {
     }
   }
 
+
+  Widget buildListTile(int index) {
+    final item = allItems[index];
+    if (item.edit) {
+      editController.text = item.name;
+      _editTextFieldFocusNode.requestFocus();
+      return TextField(
+        focusNode: _editTextFieldFocusNode,
+        decoration: InputDecoration(labelText: "Edit the entry"),
+        controller: editController,
+        onSubmitted: (entry) => submitItemEdit(entry, index),
+      );
+    } else {
+      return Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+        Text(item.name),
+        ButtonBar(alignment: MainAxisAlignment.center, children: [
+          IconButton(
+            tooltip: "Edit the Item",
+              alignment: Alignment.centerRight,
+              icon: Icon(
+                Icons.edit,
+                size: 18,
+              ),
+              onPressed: () => _toggleEditView(index)),
+          IconButton(
+            tooltip: "Delete the Item",
+            alignment: Alignment.centerRight,
+            icon: Icon(
+              Icons.delete,
+              size: 18,
+            ),
+            onPressed: () => _deleteItem(item),
+          ),
+        ])
+      ]);
+    }
+  }
+
   void _startSpin() {
-    int maxBound = currentWheelItems.length == 2 ? currentWheelItems.length : currentWheelItems.length - 1;
+    int maxBound = currentWheelItems.length == 2
+        ? currentWheelItems.length
+        : currentWheelItems.length - 1;
     originalRandom = Random().nextInt(maxBound);
     if (_selected == originalRandom) {
       List<int> tmp = List.generate(currentWheelItems.length, (index) => index);
@@ -235,8 +255,13 @@ class _WheelState extends State<Wheel> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text("We have a winner!"),
-            content: Text("The winner is: ${currentWheelItems[_selected].name}"),
-            actions: [ElevatedButton(onPressed: () => _closePopUpAndRemoveEntry(context), child: Text("close"))],
+            content:
+                Text("The winner is: ${currentWheelItems[_selected].name}"),
+            actions: [
+              ElevatedButton(
+                  onPressed: () => _closePopUpAndRemoveEntry(context),
+                  child: Text("close"))
+            ],
           );
         });
   }
@@ -248,9 +273,7 @@ class _WheelState extends State<Wheel> {
     saveAllItemsToLocalStorage();
   }
 
-  void _submitTextEntry(String entry) {
-
-  }
+  void _submitTextEntry(String entry) {}
 
   void _resetWheel() {
     setState(() {
@@ -266,21 +289,16 @@ class _WheelState extends State<Wheel> {
 
   double getWheelWidth(BuildContext context) {
     if (isCollapsed) {
-      return MediaQuery
-          .of(context)
-          .size
-          .width - 50;
+      return MediaQuery.of(context).size.width - 50;
     } else {
-      return (MediaQuery
-          .of(context)
-          .size
-          .width / 4) * 3;
+      return (MediaQuery.of(context).size.width / 4) * 3;
     }
   }
 
   void buildItemList() {
     List<String> spliced = html.window.localStorage['wheel_items'].split(",");
-    var tmp = List.generate(spliced.length, (index) => new WheelItem(name: spliced[index]));
+    var tmp = List.generate(
+        spliced.length, (index) => new WheelItem(name: spliced[index]));
     setState(() {
       currentWheelItems = []..addAll(tmp);
       allItems = []..addAll(tmp);
@@ -296,7 +314,7 @@ class _WheelState extends State<Wheel> {
       });
       saveAllItemsToLocalStorage();
       _textController.clear();
-      _focusNode.requestFocus();
+      _newTextFieldFocusNode.requestFocus();
     }
     if (allItems.length > 1) {
       setState(() {
@@ -332,9 +350,23 @@ class _WheelState extends State<Wheel> {
       for (WheelItem item in allItems) {
         localStorageString += item.name + ",";
       }
-      html.window.localStorage['wheel_items'] = localStorageString.substring(0, localStorageString.length - 1);
+      html.window.localStorage['wheel_items'] =
+          localStorageString.substring(0, localStorageString.length - 1);
     } else {
       html.window.localStorage['wheel_items'] = "";
     }
+  }
+
+  void _toggleEditView(int index) {
+    setState(() {
+      allItems[index].edit = !allItems[index].edit;
+    });
+  }
+
+  submitItemEdit(String entry, int index) {
+    _toggleEditView(index);
+    setState(() {
+      allItems[index].name = entry;
+    });
   }
 }
