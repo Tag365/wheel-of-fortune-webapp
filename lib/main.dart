@@ -36,7 +36,7 @@ class _WheelState extends State<Wheel> {
   final FocusNode _editTextFieldFocusNode = FocusNode();
   static const double EditHeight = 70;
   static const double ButtonHeight = 60;
-  static const String versionNumber = "0.3.5";
+  static const String versionNumber = "0.5.0";
 
   bool isCollapsed = false;
   bool toggleOnce = true;
@@ -173,7 +173,6 @@ class _WheelState extends State<Wheel> {
                   child: ListView.builder(
                     itemCount: allItems.length,
                     itemBuilder: (context, index) {
-                      print(allItems[index].toString());
                       return GestureDetector(
                           onDoubleTap: () => _toggleEditView(index),
                           child: buildListTile(index));
