@@ -39,6 +39,8 @@ class _WheelState extends State<Wheel> {
   static const String versionNumber = "0.3.5";
 
   bool isCollapsed = false;
+  bool toggleOnce = true;
+  bool forcedToggle = false;
   double wheelWidth;
   int _selected = 0;
   int originalRandom;
@@ -57,6 +59,16 @@ class _WheelState extends State<Wheel> {
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.of(context).size.width < 1000 && toggleOnce && !forcedToggle) {
+      setState(() {
+        isCollapsed = true;
+        toggleOnce = false;
+      });
+    } else {
+      setState(() {
+        toggleOnce = true;
+      });
+    }
     return Scaffold(
       body: Row(children: [
         Container(
@@ -285,6 +297,15 @@ class _WheelState extends State<Wheel> {
     setState(() {
       isCollapsed = !isCollapsed;
     });
+    if (MediaQuery.of(context).size.width < 1000 && !isCollapsed){
+      setState(() {
+        forcedToggle = true;
+      });
+    } else {
+      setState(() {
+        forcedToggle = false;
+      });
+    }
   }
 
   double getWheelWidth(BuildContext context) {
