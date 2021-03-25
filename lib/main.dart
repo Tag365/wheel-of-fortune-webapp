@@ -86,7 +86,7 @@ class _WheelState extends State<Wheel> {
             children: [
               Expanded(
                 child: FortuneWheel(
-                  styleStrategy: UniformStyleStrategy(),
+                  styleStrategy: AlternatingStyleStrategy(),
                   animateFirst: false,
                   selected: _selected,
                   physics: NoPanPhysics(),
@@ -95,6 +95,7 @@ class _WheelState extends State<Wheel> {
                   items: [
                     for (var item in currentWheelItems)
                       FortuneItem(
+                          style: FortuneItemStyle(color: item.color),
                           child: Text(
                             item.name,
                             style: TextStyle(fontSize: 20),
@@ -207,7 +208,6 @@ class _WheelState extends State<Wheel> {
     }
   }
 
-
   Widget buildListTile(int index) {
     final item = allItems[index];
     if (item.edit) {
@@ -224,7 +224,7 @@ class _WheelState extends State<Wheel> {
         Text(item.name),
         ButtonBar(alignment: MainAxisAlignment.center, children: [
           IconButton(
-            tooltip: "Edit the Item",
+              tooltip: "Edit the Item",
               alignment: Alignment.centerRight,
               icon: Icon(
                 Icons.edit,
@@ -293,8 +293,6 @@ class _WheelState extends State<Wheel> {
     saveAllItemsToLocalStorage();
   }
 
-  void _submitTextEntry(String entry) {}
-
   void _resetWheel() {
     setState(() {
       currentWheelItems = []..addAll(lastWheelItems);
@@ -305,7 +303,7 @@ class _WheelState extends State<Wheel> {
     setState(() {
       isCollapsed = !isCollapsed;
     });
-    if (MediaQuery.of(context).size.width < 1000 && !isCollapsed){
+    if (MediaQuery.of(context).size.width < 1000 && !isCollapsed) {
       setState(() {
         forcedToggle = true;
       });
@@ -388,7 +386,7 @@ class _WheelState extends State<Wheel> {
 
   void _toggleEditView(int index) {
     setState(() {
-      allItems[index].edit = !allItems[index].edit;
+      allItems[index].toggleEdit();
     });
   }
 
