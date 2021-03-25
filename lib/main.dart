@@ -290,6 +290,7 @@ class _WheelState extends State<Wheel> {
   void _deleteItem(WheelItem item) {
     setState(() {
       allItems.remove(item);
+      _changeWheelItems(null);
     });
     saveAllItemsToLocalStorage();
   }
