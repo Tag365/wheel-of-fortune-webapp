@@ -16,10 +16,11 @@ class WheelHomeWidget extends StatelessWidget {
       title: "Fortune Wheel",
       home: Wheel(),
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
+      darkTheme: ThemeData(
           brightness: Brightness.dark,
           primaryColor: Colors.grey,
           accentColor: Colors.white),
+      themeMode: ThemeMode.dark,
     );
   }
 }
@@ -68,7 +69,9 @@ class _WheelState extends State<Wheel> {
 
   @override
   Widget build(BuildContext context) {
-    if (MediaQuery.of(context).size.width < 1000 && toggleOnce && !forcedToggle) {
+    if (MediaQuery.of(context).size.width < 1000 &&
+        toggleOnce &&
+        !forcedToggle) {
       setState(() {
         isCollapsed = true;
         toggleOnce = false;
@@ -211,12 +214,10 @@ class _WheelState extends State<Wheel> {
   Widget buildListTile(int index) {
     final item = allItems[index];
     if (item.edit) {
-      editController.text = item.name;
-      _editTextFieldFocusNode.requestFocus();
       return TextField(
-        focusNode: _editTextFieldFocusNode,
+        focusNode: item.focusNode,
         decoration: InputDecoration(labelText: "Edit the entry"),
-        controller: editController,
+        controller: item.controller,
         onSubmitted: (entry) => submitItemEdit(entry, index),
       );
     } else {

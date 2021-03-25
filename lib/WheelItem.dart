@@ -6,10 +6,13 @@ class WheelItem {
   String name;
   bool edit;
   Color color;
-
+  TextEditingController controller;
+  FocusNode focusNode;
 
   WheelItem({@required this.name, this.edit = false})
-      : this.color = randomizeColor();
+      : this.color = randomizeColor(),
+        this.controller = new TextEditingController(),
+        this.focusNode = new FocusNode();
 
   WheelItem.fromMap(Map<String, dynamic> map) : name = map['name'];
 
@@ -24,6 +27,11 @@ class WheelItem {
 
   toggleEdit() {
     edit = !edit;
+    if (edit) {
+      controller.text = name;
+    } else {
+      controller.clear();
+    }
   }
 
   static Color randomizeColor() {
