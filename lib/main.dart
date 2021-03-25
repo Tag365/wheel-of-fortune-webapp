@@ -34,10 +34,9 @@ class _WheelState extends State<Wheel> {
   final TextEditingController _textController = new TextEditingController();
   final TextEditingController editController = new TextEditingController();
   final FocusNode _newTextFieldFocusNode = FocusNode();
-  final FocusNode _editTextFieldFocusNode = FocusNode();
   static const double EditHeight = 70;
   static const double ButtonHeight = 60;
-  static const String versionNumber = "0.5.0";
+  static const String versionNumber = "0.6.0";
 
   bool isCollapsed = false;
   bool toggleOnce = true;
