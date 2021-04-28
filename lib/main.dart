@@ -47,7 +47,7 @@ class _WheelState extends State<Wheel> {
   final FocusNode _newTextFieldFocusNode = FocusNode();
   static const double EditHeight = 70;
   static const double ButtonHeight = 60;
-  static const String versionNumber = "0.6.0";
+  static const String versionNumber = "0.7.0";
 
   bool deleteItem = true;
   bool isCollapsed = false;
