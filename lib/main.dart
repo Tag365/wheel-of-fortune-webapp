@@ -41,19 +41,18 @@ class _WheelState extends State<Wheel> {
     Colors.yellow,
     Colors.orange
   ];
-
   final TextEditingController _textController = new TextEditingController();
   final TextEditingController editController = new TextEditingController();
   final FocusNode _newTextFieldFocusNode = FocusNode();
   static const double EditHeight = 70;
   static const double ButtonHeight = 60;
-  static const String versionNumber = "0.7.0";
+  static const String versionNumber = "0.7.5";
 
-  bool deleteItem = true;
+  bool deleteItem;
   bool isCollapsed = false;
   bool toggleOnce = true;
   bool forcedToggle = false;
-  double wheelWidth;
+  bool lockButtons = false;
   int _selected = 0;
   int originalRandom;
   List<WheelItem> allItems;
@@ -73,7 +72,10 @@ class _WheelState extends State<Wheel> {
           "${html.window.localStorage['wheel_items']},placeholder$i";
       i++;
     }
-
+    if (html.window.localStorage['deleteItems'] == null){
+      html.window.localStorage['deleteItems'] = "true";
+    }
+    deleteItem = html.window.localStorage['deleteItems'] == "true";
     buildItemList();
     super.initState();
   }
@@ -125,11 +127,11 @@ class _WheelState extends State<Wheel> {
                     ElevatedButton(
                         child: Text("SPIN", style: TextStyle(fontSize: 30)),
                         style: ElevatedButton.styleFrom(primary: Colors.grey),
-                        onPressed: _startSpin),
+                        onPressed: lockButtons ? null : _startSpin),
                     ElevatedButton(
                       child: Text("Reset", style: TextStyle(fontSize: 25)),
                       style: ElevatedButton.styleFrom(primary: Colors.grey),
-                      onPressed: _resetWheel,
+                      onPressed: lockButtons ? null : _resetWheel,
                     )
                   ])),
               Container(
@@ -200,17 +202,11 @@ class _WheelState extends State<Wheel> {
                 height: MediaQuery.of(context).size.height -
                     EditHeight -
                     ButtonHeight,
-                child: Scrollbar(
-                  isAlwaysShown: true,
-                  thickness: 7.5,
-                  child: ListView.builder(
-                    itemCount: allItems.length,
-                    itemBuilder: (context, index) {
-                      return GestureDetector(
-                          onDoubleTap: () => _toggleEditView(index),
-                          child: buildListTile(index));
-                    },
-                  ),
+                child: ListView.builder(
+                  itemCount: allItems.length,
+                  itemBuilder: (context, index) {
+                    return buildListTile(index);
+                  },
                 )),
             Container(
               height: EditHeight,
@@ -231,7 +227,7 @@ class _WheelState extends State<Wheel> {
                   style: TextStyle(fontSize: 18),
                 ),
                 style: ElevatedButton.styleFrom(primary: Colors.grey),
-                onPressed: () => _changeWheelItems(null),
+                onPressed: lockButtons ? null : () => _changeWheelItems(null),
               ),
             )
           ],
@@ -260,7 +256,7 @@ class _WheelState extends State<Wheel> {
                 Icons.edit,
                 size: 18,
               ),
-              onPressed: () => _toggleEditView(index)),
+              onPressed: lockButtons ? null : () => _toggleEditView(index)),
           IconButton(
             tooltip: "Delete the Item",
             alignment: Alignment.centerRight,
@@ -268,7 +264,7 @@ class _WheelState extends State<Wheel> {
               Icons.delete,
               size: 18,
             ),
-            onPressed: () => _deleteItem(item),
+            onPressed: lockButtons ? null : () => _deleteItem(item),
           ),
         ])
       ]);
@@ -295,11 +291,15 @@ class _WheelState extends State<Wheel> {
 
   void onAnimationStart() {
     setState(() {
+      lockButtons = true;
       _selected = originalRandom;
     });
   }
 
   void _showResult(BuildContext context) {
+    setState(() {
+      lockButtons = false;
+    });
     showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -366,7 +366,8 @@ class _WheelState extends State<Wheel> {
   }
 
   void _changeWheelItems(String entry) {
-    if (_textController.text.isNotEmpty) {
+    _newTextFieldFocusNode.requestFocus();
+    if (_textController.text.isNotEmpty && !lockButtons) {
       WheelItem newItem = new WheelItem(name: _textController.text);
       setState(() {
         allItems.add(newItem);
@@ -374,7 +375,6 @@ class _WheelState extends State<Wheel> {
       saveAllItemsToLocalStorage();
       _textController.clear();
     }
-    _newTextFieldFocusNode.requestFocus();
     if (allItems.length > 1) {
       setState(() {
         currentWheelItems = []..addAll(allItems);
@@ -394,9 +394,9 @@ class _WheelState extends State<Wheel> {
   }
 
   void _closePopUpAndRemoveEntry(BuildContext context) {
-    if (currentWheelItems.length > 2 && deleteItem) {
+    if (currentWheelItems.length > 2) {
       setState(() {
-        currentWheelItems.removeAt(_selected);
+        if (deleteItem) currentWheelItems.removeAt(_selected);
         currentWheelItems.shuffle();
       });
     }
@@ -433,5 +433,6 @@ class _WheelState extends State<Wheel> {
     setState(() {
       deleteItem = !deleteItem;
     });
+    html.window.localStorage['deleteItems'] = deleteItem.toString();
   }
 }
