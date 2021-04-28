@@ -178,8 +178,7 @@ class _WheelState extends State<Wheel> {
                 backgroundColor: deleteItem ? Colors.green : Colors.red,
                 label: deleteItem
                     ? "Delete item after it got picked"
-                    : "Keep"
-                        " item on the wheel",
+                    : "Keep item on the wheel",
                 onTap: _toggleDeleteItemsOnSpin)
           ],
           icon: Icons.settings,
@@ -374,8 +373,8 @@ class _WheelState extends State<Wheel> {
       });
       saveAllItemsToLocalStorage();
       _textController.clear();
-      _newTextFieldFocusNode.requestFocus();
     }
+    _newTextFieldFocusNode.requestFocus();
     if (allItems.length > 1) {
       setState(() {
         currentWheelItems = []..addAll(allItems);
