@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_fortune_wheel/flutter_fortune_wheel.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:wheel_flutter/WheelItem.dart';
 
 void main() {
@@ -48,6 +49,7 @@ class _WheelState extends State<Wheel> {
   static const double ButtonHeight = 60;
   static const String versionNumber = "0.6.0";
 
+  bool deleteItem = true;
   bool isCollapsed = false;
   bool toggleOnce = true;
   bool forcedToggle = false;
@@ -164,6 +166,24 @@ class _WheelState extends State<Wheel> {
             ])),
         buildListView(context),
       ]),
+      floatingActionButtonLocation: FloatingActionButtonLocation.startFloat,
+      floatingActionButton: SpeedDial(
+          direction: SpeedDialDirection.Up,
+          switchLabelPosition: true,
+          closeManually: false,
+          tooltip: 'Settings',
+          children: [
+            SpeedDialChild(
+                child: Icon(Icons.autorenew),
+                backgroundColor: deleteItem ? Colors.green : Colors.red,
+                label: deleteItem
+                    ? "Delete item after it got picked"
+                    : "Keep"
+                        " item on the wheel",
+                onTap: _toggleDeleteItemsOnSpin)
+          ],
+          icon: Icons.settings,
+          activeIcon: Icons.close),
     );
   }
 
@@ -302,6 +322,7 @@ class _WheelState extends State<Wheel> {
       allItems.remove(item);
       _changeWheelItems(null);
     });
+
     saveAllItemsToLocalStorage();
   }
 
@@ -374,7 +395,7 @@ class _WheelState extends State<Wheel> {
   }
 
   void _closePopUpAndRemoveEntry(BuildContext context) {
-    if (currentWheelItems.length > 2) {
+    if (currentWheelItems.length > 2 && deleteItem) {
       setState(() {
         currentWheelItems.removeAt(_selected);
         currentWheelItems.shuffle();
@@ -406,6 +427,12 @@ class _WheelState extends State<Wheel> {
     _toggleEditView(index);
     setState(() {
       allItems[index].name = entry;
+    });
+  }
+
+  void _toggleDeleteItemsOnSpin() {
+    setState(() {
+      deleteItem = !deleteItem;
     });
   }
 }
