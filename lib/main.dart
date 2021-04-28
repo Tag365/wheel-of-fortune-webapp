@@ -31,6 +31,16 @@ class Wheel extends StatefulWidget {
 }
 
 class _WheelState extends State<Wheel> {
+  final List<Color> colors = [
+    Colors.red,
+    Colors.purple,
+    Colors.indigo,
+    Colors.cyan,
+    Colors.green,
+    Colors.yellow,
+    Colors.orange
+  ];
+
   final TextEditingController _textController = new TextEditingController();
   final TextEditingController editController = new TextEditingController();
   final FocusNode _newTextFieldFocusNode = FocusNode();
@@ -95,11 +105,12 @@ class _WheelState extends State<Wheel> {
                   onAnimationStart: onAnimationStart,
                   onAnimationEnd: () => _showResult(context),
                   items: [
-                    for (var item in currentWheelItems)
+                    for (int i = 0; i < currentWheelItems.length; i++)
                       FortuneItem(
-                          style: FortuneItemStyle(color: item.color),
+                          style: FortuneItemStyle(
+                              color: colors[i % colors.length]),
                           child: Text(
-                            item.name,
+                            currentWheelItems[i].name,
                             style: TextStyle(fontSize: 20),
                           )),
                   ],
